@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Menu, BarChart3, FileText, Sparkles, User, Settings, Bell } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import AISearchBar from '@/components/shared/AISearchBar';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -72,11 +73,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Topbar */}
-        <header className="h-14 border-b border-border bg-card flex items-center justify-between px-6">
+        <header className="h-14 border-b border-border bg-card flex items-center gap-4 px-6">
           <div className="flex items-center gap-4">
             <h2 className="text-lg font-semibold text-foreground">
               {navItems.find(item => item.path === location.pathname)?.label || 'Dashboard'}
             </h2>
+          </div>
+
+          {/* Centered AI Search Bar */}
+          <div className="flex-1 max-w-2xl mx-auto">
+            <AISearchBar />
           </div>
 
           <div className="flex items-center gap-2">

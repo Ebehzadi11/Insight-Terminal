@@ -1,13 +1,15 @@
 import { useDashboardStore } from '@/stores/dashboardStore';
+import { useMacroStore } from '@/stores/macroStore';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TimeRange, Frequency, NormalizationMode } from '@/types';
-import { Calendar, TrendingUp, Activity } from 'lucide-react';
+import { Calendar, TrendingUp, Activity, BarChart3, LineChart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function FilterBar() {
-  const { timeRange, frequency, normalization, setTimeRange, setFrequency, setNormalization } =
+  const { timeRange, frequency, normalization, setTimeRange, setFrequency, setNormalization, toggleIndicatorDrawer, toggleStatsDrawer } =
     useDashboardStore();
+  const { selectedIndicators } = useMacroStore();
 
   const timeRanges: TimeRange[] = ['1M', '3M', '6M', '1Y', '3Y', '5Y', 'ALL'];
   const frequencies: Frequency[] = ['daily', 'weekly', 'monthly'];
@@ -78,6 +80,31 @@ export default function FilterBar() {
             </SelectContent>
           </Select>
         </div>
+
+        {/* Stats Button */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={toggleStatsDrawer}
+          className="h-8 gap-2 text-muted-foreground hover:text-foreground"
+        >
+          <LineChart className="h-4 w-4" />
+          <span>Stats</span>
+        </Button>
+
+        {/* Indicators Button */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={toggleIndicatorDrawer}
+          className="h-8 gap-2 text-muted-foreground hover:text-foreground"
+        >
+          <BarChart3 className="h-4 w-4" />
+          <span>Indicators</span>
+          <span className="flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs font-medium">
+            {selectedIndicators.length}
+          </span>
+        </Button>
       </div>
     </div>
   );
