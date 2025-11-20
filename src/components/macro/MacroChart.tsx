@@ -5,8 +5,7 @@ import { useDashboardStore } from '@/stores/dashboardStore';
 import { Card } from '@/components/ui/card';
 import type { IndicatorSeries } from '@/types/indicators';
 import { indexNormalize, percentChangeNormalize, zScoreNormalize } from '@/lib/normalization';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+import { mockIndicatorData } from '@/lib/mockData';
 
 // Color mapping for indicators using theme chart colors
 const defaultColors = [
@@ -17,6 +16,16 @@ const defaultColors = [
   'hsl(var(--chart-5))',
 ];
 
+// Indicator names mapping
+const indicatorNames: Record<string, string> = {
+  SPX: 'S&P 500',
+  BTC: 'Bitcoin',
+  ETH: 'Ethereum',
+  M2: 'M2 Money Supply',
+  DXY: 'Dollar Index',
+  '10Y': '10Y Treasury',
+};
+
 export default function MacroChart() {
   const { selectedIndicators } = useMacroStore();
   const { timeRange, normalization } = useDashboardStore();
@@ -24,60 +33,69 @@ export default function MacroChart() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch indicator data from API
+  // Load mock data
   useEffect(() => {
     if (selectedIndicators.length === 0) {
       setIndicatorSeries([]);
       return;
     }
 
-    const fetchData = async () => {
-      setLoading(true);
-      setError(null);
+    setLoading(true);
+    setError(null);
 
-      try {
-        // Calculate date range based on timeRange
-        const now = new Date();
-        const rangeMap: Record<string, number> = {
-          '1M': 30,
-          '3M': 90,
-          '6M': 180,
-          '1Y': 365,
-          '3Y': 1095,
-          '5Y': 1825,
-          'ALL': 10000,
-        };
+    try {
+      // Calculate date range based on timeRange
+      const now = new Date();
+      const rangeMap: Record<string, number> = {
+        '1M': 30,
+        '3M': 90,
+        '6M': 180,
+        '1Y': 365,
+        '3Y': 1095,
+        '5Y': 1825,
+        'ALL': 10000,
+      };
 
-        const daysBack = rangeMap[timeRange] || 365;
-        const startDate = new Date(now.getTime() - daysBack * 24 * 60 * 60 * 1000);
-        const endDate = now;
+      const daysBack = rangeMap[timeRange] || 365;
+      const startDate = new Date(now.getTime() - daysBack * 24 * 60 * 60 * 1000);
+      const endDate = now;
 
-        // Format dates as YYYY-MM-DD
-        const startDateStr = startDate.toISOString().split('T')[0];
-        const endDateStr = endDate.toISOString().split('T')[0];
+      // Convert mock data to IndicatorSeries format
+      const series: IndicatorSeries[] = selectedIndicators.map((code) => {
+        const mockData = mockIndicatorData[code as keyof typeof mockIndicatorData];
 
-        // Fetch indicator data from API
-        const codesParam = selectedIndicators.join(',');
-        const response = await fetch(
-          `${API_BASE_URL}/api/indicators?codes=${codesParam}&start=${startDateStr}&end=${endDateStr}`
-        );
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Failed to fetch indicator data');
+        if (!mockData) {
+          return {
+            code,
+            name: indicatorNames[code] || code,
+            values: [],
+          };
         }
 
-        const { indicators } = (await response.json()) as { indicators: IndicatorSeries[] };
-        setIndicatorSeries(indicators || []);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch data');
-        setIndicatorSeries([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+        // Filter data by date range
+        const filteredData = mockData.filter((point) => {
+          const pointDate = new Date(point.date);
+          return pointDate >= startDate && pointDate <= endDate;
+        });
 
-    fetchData();
+        return {
+          code,
+          name: indicatorNames[code] || code,
+          values: filteredData.map((point) => ({
+            indicatorId: code,
+            timestamp: point.date,
+            value: point.value,
+          })),
+        };
+      });
+
+      setIndicatorSeries(series);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load data');
+      setIndicatorSeries([]);
+    } finally {
+      setLoading(false);
+    }
   }, [selectedIndicators, timeRange]);
 
   // Apply normalization and transform to chart format

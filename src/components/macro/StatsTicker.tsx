@@ -1,5 +1,7 @@
-import { TrendingUp, TrendingDown } from 'lucide-react';
+import { TrendingUp, TrendingDown, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useDashboardStore } from '@/stores/dashboardStore';
+import { Button } from '@/components/ui/button';
 
 interface TickerItem {
   code: string;
@@ -11,6 +13,8 @@ interface TickerItem {
 }
 
 export default function StatsTicker() {
+  const { toggleStatsDrawer } = useDashboardStore();
+
   const tickerData: TickerItem[] = [
     {
       code: 'SPX',
@@ -64,43 +68,59 @@ export default function StatsTicker() {
 
   return (
     <div className="border-b border-border bg-card">
-      <div className="overflow-x-auto">
-        <div className="flex items-center divide-x divide-border min-w-max">
-          {tickerData.map((item) => (
-            <div
-              key={item.code}
-              className="flex items-center gap-3 px-4 py-3 hover:bg-accent/50 transition-colors cursor-pointer"
-            >
-              {/* Indicator Dot */}
+      <div className="flex items-center">
+        {/* Scrollable Ticker */}
+        <div className="flex-1 overflow-x-auto">
+          <div className="flex items-center divide-x divide-border min-w-max">
+            {tickerData.map((item) => (
               <div
-                className="w-2 h-2 rounded-full flex-shrink-0"
-                style={{ backgroundColor: item.color }}
-              />
+                key={item.code}
+                className="flex items-center gap-3 px-4 py-3 hover:bg-accent/50 transition-colors cursor-pointer"
+              >
+                {/* Indicator Dot */}
+                <div
+                  className="w-2 h-2 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: item.color }}
+                />
 
-              {/* Code & Label */}
-              <div className="flex flex-col min-w-[80px]">
-                <span className="text-xs font-medium text-muted-foreground">{item.code}</span>
-                <span className="text-sm font-semibold text-foreground">{item.value}</span>
-              </div>
+                {/* Code & Label */}
+                <div className="flex flex-col min-w-[80px]">
+                  <span className="text-xs font-medium text-muted-foreground">{item.code}</span>
+                  <span className="text-sm font-semibold text-foreground">{item.value}</span>
+                </div>
 
-              {/* Change */}
-              <div className="flex items-center gap-1">
-                {item.trend === 'up' ? (
-                  <TrendingUp className="h-3 w-3 text-green-500" />
-                ) : (
-                  <TrendingDown className="h-3 w-3 text-red-500" />
-                )}
-                <span
-                  className={cn(
-                    'text-xs font-medium',
-                    item.trend === 'up' ? 'text-green-500' : 'text-red-500'
+                {/* Change */}
+                <div className="flex items-center gap-1">
+                  {item.trend === 'up' ? (
+                    <TrendingUp className="h-3 w-3 text-green-500" />
+                  ) : (
+                    <TrendingDown className="h-3 w-3 text-red-500" />
                   )}
-                >
-                  {item.change}
-                </span>
+                  <span
+                    className={cn(
+                      'text-xs font-medium',
+                      item.trend === 'up' ? 'text-green-500' : 'text-red-500'
+                    )}
+                  >
+                    {item.change}
+                  </span>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
+        </div>
+
+        {/* Drawer Button */}
+        <div className="flex-shrink-0 border-l border-border px-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={toggleStatsDrawer}
+            className="h-8 gap-1 text-muted-foreground hover:text-foreground"
+          >
+            <span className="text-xs">View All</span>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
         </div>
       </div>
     </div>
